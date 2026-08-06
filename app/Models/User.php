@@ -4,15 +4,18 @@ namespace App\Models;
 
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
 /**
- * Model User — Admin & Petugas Lapangan DLH Demak.
- *
- * Role:
- * - admin: Akses penuh (dashboard, disposisi, export, manajemen user)
- * - petugas: Akses terbatas (lihat laporan yang di-assign, upload bukti selesai)
+ * Model User — Staff DLH Kabupaten Demak
+ * 
+ * Digunakan untuk admin dan petugas lapangan.
+ * Warga pelapor TIDAK perlu akun user.
+ * 
+ * @property string $role  'admin' atau 'petugas'
+ * @property bool $is_active  Status aktif akun
  */
 class User extends Authenticatable
 {
@@ -25,6 +28,7 @@ class User extends Authenticatable
         'password',
         'role',
         'phone',
+        'nip',
         'is_active',
     ];
 
@@ -33,11 +37,6 @@ class User extends Authenticatable
         'remember_token',
     ];
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
     protected function casts(): array
     {
         return [
@@ -47,8 +46,24 @@ class User extends Authenticatable
         ];
     }
 
+    // =========================================
+    // RELASI
+    // =========================================
+
     /**
-     * Cek apakah user adalah Admin.
+     * Laporan yang ditugaskan ke petugas ini
+     */
+    public function assignedReports(): HasMany
+    {
+        return $this->hasMany(Report::class, 'assigned_to');
+    }
+
+    // =========================================
+    // HELPER METHODS
+    // =========================================
+
+    /**
+     * Cek apakah user adalah admin
      */
     public function isAdmin(): bool
     {
@@ -56,7 +71,7 @@ class User extends Authenticatable
     }
 
     /**
-     * Cek apakah user adalah Petugas Lapangan.
+     * Cek apakah user adalah petugas lapangan
      */
     public function isPetugas(): bool
     {
@@ -64,10 +79,25 @@ class User extends Authenticatable
     }
 
     /**
-     * Relasi: Laporan yang ditugaskan ke petugas ini.
+     * Nama role yang ramah ditampilkan
      */
-    public function assignedReports()
+    public function getRoleLabelAttribute(): string
     {
-        return $this->hasMany(Report::class, 'assigned_to');
+        return match ($this->role) {
+            'admin' => 'Administrator',
+            'petugas' => 'Petugas Lapangan',
+            default => $this->role,
+        };
+    }
+
+    /**
+     * Hitung jumlah laporan aktif yang ditugaskan ke petugas ini
+     * (status pending atau diproses, belum selesai/ditolak)
+     */
+    public function activeAssignedReportsCount(): int
+    {
+        return $this->assignedReports()
+            ->whereIn('status', ['pending', 'diproses'])
+            ->count();
     }
 }

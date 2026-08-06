@@ -5,15 +5,14 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Carbon\Carbon;
 
 /**
- * Model Report — Laporan Pengaduan Sampah & Pencemaran.
- *
- * Fitur utama:
- * - Auto-generate kode tiket unik (DLH-YYYYMMDD-XXX)
- * - Scope filter berdasarkan status, kategori, kecamatan
- * - Relasi ke User (petugas yang ditugaskan) dan ReportHistory
+ * Model Report — Laporan Pengaduan Utama
+ * 
+ * Model inti sistem. Menyimpan semua data pengaduan dari warga
+ * termasuk lokasi GPS, status penanganan, dan disposisi petugas.
+ * 
+ * Status flow: pending → diproses → selesai/ditolak
  */
 class Report extends Model
 {
@@ -22,20 +21,25 @@ class Report extends Model
         'reporter_name',
         'reporter_phone',
         'reporter_email',
-        'category',
+        'is_anonymous',
+        'category_id',
         'description',
         'latitude',
         'longitude',
         'address',
         'kelurahan',
         'kecamatan',
-        'photo_path',
+        'kecamatan_id',
+        'desa_id',
         'status',
         'priority',
         'assigned_to',
-        'resolved_photo',
-        'resolved_note',
+        'assigned_at',
+        'admin_notes',
+        'resolution_notes',
+        'rejection_reason',
         'resolved_at',
+        'sla_due_at',
     ];
 
     protected function casts(): array
@@ -43,51 +47,27 @@ class Report extends Model
         return [
             'latitude' => 'decimal:8',
             'longitude' => 'decimal:8',
+            'assigned_at' => 'datetime',
             'resolved_at' => 'datetime',
+            'sla_due_at' => 'datetime',
+            'is_anonymous' => 'boolean',
         ];
     }
 
+    // =========================================
+    // RELASI
+    // =========================================
+
     /**
-     * Boot method — Auto-generate kode tiket saat membuat laporan baru.
-     * Format: DLH-YYYYMMDD-XXX (contoh: DLH-20260803-001)
+     * Kategori pengaduan
      */
-    protected static function booted()
+    public function category(): BelongsTo
     {
-        static::creating(function ($report) {
-            if (empty($report->ticket_code)) {
-                $report->ticket_code = self::generateTicketCode();
-            }
-        });
+        return $this->belongsTo(Category::class);
     }
 
     /**
-     * Generate kode tiket unik.
-     * Menggunakan format DLH-YYYYMMDD-XXX dengan auto-increment harian.
-     */
-    public static function generateTicketCode(): string
-    {
-        $today = Carbon::now()->format('Ymd');
-        $prefix = "DLH-{$today}-";
-
-        // Cari nomor urut terakhir hari ini
-        $lastReport = self::where('ticket_code', 'like', $prefix . '%')
-            ->orderBy('ticket_code', 'desc')
-            ->first();
-
-        if ($lastReport) {
-            $lastNumber = (int) substr($lastReport->ticket_code, -3);
-            $newNumber = $lastNumber + 1;
-        } else {
-            $newNumber = 1;
-        }
-
-        return $prefix . str_pad($newNumber, 3, '0', STR_PAD_LEFT);
-    }
-
-    // ===== RELASI =====
-
-    /**
-     * Petugas yang ditugaskan menangani laporan ini.
+     * Petugas yang ditugaskan
      */
     public function assignedUser(): BelongsTo
     {
@@ -95,114 +75,178 @@ class Report extends Model
     }
 
     /**
-     * Riwayat perubahan status laporan.
+     * Kecamatan (relasi FK ke tabel master)
      */
-    public function histories(): HasMany
+    public function kecamatanRef(): BelongsTo
     {
-        return $this->hasMany(ReportHistory::class)->orderBy('created_at', 'desc');
-    }
-
-    // ===== SCOPE FILTER =====
-
-    /**
-     * Filter berdasarkan status.
-     */
-    public function scopeByStatus($query, $status)
-    {
-        if ($status) {
-            return $query->where('status', $status);
-        }
-        return $query;
+        return $this->belongsTo(Kecamatan::class, 'kecamatan_id');
     }
 
     /**
-     * Filter berdasarkan kategori.
+     * Desa/Kelurahan (relasi FK ke tabel master)
      */
-    public function scopeByCategory($query, $category)
+    public function desa(): BelongsTo
     {
-        if ($category) {
-            return $query->where('category', $category);
-        }
-        return $query;
+        return $this->belongsTo(Desa::class);
     }
 
     /**
-     * Filter berdasarkan kecamatan.
+     * Foto-foto bukti pengaduan & penyelesaian
      */
-    public function scopeByKecamatan($query, $kecamatan)
+    public function photos(): HasMany
     {
-        if ($kecamatan) {
-            return $query->where('kecamatan', $kecamatan);
-        }
-        return $query;
+        return $this->hasMany(ReportPhoto::class);
     }
 
     /**
-     * Filter berdasarkan rentang tanggal.
+     * Foto bukti dari pelapor saja
      */
-    public function scopeByDateRange($query, $from, $to)
+    public function evidencePhotos(): HasMany
     {
-        if ($from && $to) {
-            return $query->whereBetween('created_at', [$from, $to]);
-        }
-        return $query;
+        return $this->hasMany(ReportPhoto::class)->where('type', 'bukti');
     }
 
-    // ===== HELPER =====
+    /**
+     * Foto bukti penyelesaian saja
+     */
+    public function resolutionPhotos(): HasMany
+    {
+        return $this->hasMany(ReportPhoto::class)->where('type', 'penyelesaian');
+    }
 
     /**
-     * Label status dalam Bahasa Indonesia.
+     * Log aktivitas/audit trail
+     */
+    public function logs(): HasMany
+    {
+        return $this->hasMany(ReportLog::class)->orderBy('created_at', 'desc');
+    }
+
+    // =========================================
+    // SCOPES (untuk filter di controller)
+    // =========================================
+
+    public function scopePending($query)
+    {
+        return $query->where('status', 'pending');
+    }
+
+    public function scopeDiproses($query)
+    {
+        return $query->where('status', 'diproses');
+    }
+
+    public function scopeSelesai($query)
+    {
+        return $query->where('status', 'selesai');
+    }
+
+    public function scopeDitolak($query)
+    {
+        return $query->where('status', 'ditolak');
+    }
+
+    public function scopeByKecamatan($query, string $kecamatan)
+    {
+        return $query->where('kecamatan', $kecamatan);
+    }
+
+    public function scopeByKecamatanId($query, int $kecamatanId)
+    {
+        return $query->where('kecamatan_id', $kecamatanId);
+    }
+
+    public function scopeByDesaId($query, int $desaId)
+    {
+        return $query->where('desa_id', $desaId);
+    }
+
+    /**
+     * Laporan yang SLA-nya sudah terlewat dan belum selesai
+     */
+    public function scopeSlaOverdue($query)
+    {
+        return $query->whereNotNull('sla_due_at')
+            ->where('sla_due_at', '<', now())
+            ->whereNotIn('status', ['selesai', 'ditolak']);
+    }
+
+    // =========================================
+    // ACCESSORS (untuk tampilan)
+    // =========================================
+
+    /**
+     * Badge HTML untuk status
+     */
+    public function getStatusBadgeAttribute(): string
+    {
+        return match ($this->status) {
+            'pending' => '<span class="badge bg-warning text-dark"><i class="bi bi-clock"></i> Pending</span>',
+            'diproses' => '<span class="badge bg-info"><i class="bi bi-gear"></i> Diproses</span>',
+            'selesai' => '<span class="badge bg-success"><i class="bi bi-check-circle"></i> Selesai</span>',
+            'ditolak' => '<span class="badge bg-danger"><i class="bi bi-x-circle"></i> Ditolak</span>',
+            default => '<span class="badge bg-secondary">' . $this->status . '</span>',
+        };
+    }
+
+    /**
+     * Badge HTML untuk prioritas
+     */
+    public function getPriorityBadgeAttribute(): string
+    {
+        return match ($this->priority) {
+            'rendah' => '<span class="badge bg-secondary">Rendah</span>',
+            'sedang' => '<span class="badge bg-primary">Sedang</span>',
+            'tinggi' => '<span class="badge bg-warning text-dark">Tinggi</span>',
+            'darurat' => '<span class="badge bg-danger">Darurat</span>',
+            default => '<span class="badge bg-secondary">' . $this->priority . '</span>',
+        };
+    }
+
+    /**
+     * Label status dalam Bahasa Indonesia
      */
     public function getStatusLabelAttribute(): string
     {
         return match ($this->status) {
-            'pending' => 'Menunggu',
+            'pending' => 'Menunggu Verifikasi',
             'diproses' => 'Sedang Diproses',
-            'selesai' => 'Selesai',
+            'selesai' => 'Selesai Ditangani',
             'ditolak' => 'Ditolak',
             default => $this->status,
         };
     }
 
     /**
-     * Warna badge status untuk UI.
+     * Cek apakah SLA sudah terlewat
      */
-    public function getStatusColorAttribute(): string
+    public function getIsSlaOverdueAttribute(): bool
     {
-        return match ($this->status) {
-            'pending' => 'warning',
-            'diproses' => 'info',
-            'selesai' => 'success',
-            'ditolak' => 'danger',
-            default => 'secondary',
-        };
+        if (!$this->sla_due_at) {
+            return false;
+        }
+        return $this->sla_due_at->isPast() && !in_array($this->status, ['selesai', 'ditolak']);
     }
 
     /**
-     * Label kategori dalam Bahasa Indonesia.
+     * Nama pelapor (tersamarkan jika anonim)
      */
-    public function getCategoryLabelAttribute(): string
+    public function getDisplayReporterNameAttribute(): string
     {
-        return match ($this->category) {
-            'sampah' => 'Penumpukan Sampah',
-            'pencemaran_air' => 'Pencemaran Air',
-            'pencemaran_udara' => 'Pencemaran Udara',
-            'lainnya' => 'Lainnya',
-            default => $this->category,
-        };
+        if ($this->is_anonymous) {
+            return 'Pelapor Anonim';
+        }
+        return $this->reporter_name;
     }
 
     /**
-     * Label prioritas.
+     * Nomor telepon pelapor (tersamarkan jika anonim)
      */
-    public function getPriorityColorAttribute(): string
+    public function getDisplayReporterPhoneAttribute(): string
     {
-        return match ($this->priority) {
-            'rendah' => 'success',
-            'sedang' => 'warning',
-            'tinggi' => 'orange',
-            'darurat' => 'danger',
-            default => 'secondary',
-        };
+        if ($this->is_anonymous) {
+            return '**********';
+        }
+        return $this->reporter_phone;
     }
 }

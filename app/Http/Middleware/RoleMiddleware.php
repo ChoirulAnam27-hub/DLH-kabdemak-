@@ -6,22 +6,30 @@ use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-/**
- * Middleware RoleMiddleware — Membatasi akses berdasarkan role user.
- *
- * Penggunaan di routes:
- *   ->middleware('role:admin')       — Hanya admin
- *   ->middleware('role:admin,petugas') — Admin & petugas
- */
 class RoleMiddleware
 {
-    public function handle(Request $request, Closure $next, string ...$roles): Response
+    /**
+     * Handle an incoming request.
+     *
+     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     * @param  string  ...$roles
+     */
+    public function handle(Request $request, Closure $next, ...$roles): Response
     {
         if (!auth()->check()) {
             return redirect()->route('login');
         }
 
-        if (!in_array(auth()->user()->role, $roles)) {
+        $user = auth()->user();
+
+        // Check if user has active status
+        if (!$user->is_active) {
+            auth()->logout();
+            return redirect()->route('login')->with('error', 'Akun Anda telah dinonaktifkan.');
+        }
+
+        // Check if user role matches one of the allowed roles
+        if (!empty($roles) && !in_array($user->role, $roles)) {
             abort(403, 'Anda tidak memiliki akses ke halaman ini.');
         }
 

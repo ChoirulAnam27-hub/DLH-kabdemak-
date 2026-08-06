@@ -1,115 +1,96 @@
-# Sistem Pengaduan Penumpukan Sampah & Pencemaran Lingkungan — Dinas Lingkungan Hidup (DLH) Kabupaten Demak
+# Sistem Pengaduan Penumpukan Sampah & Pencemaran Lingkungan - DLH Demak
 
-Sistem Informasi Geografis berbasis web yang dirancang untuk memudahkan warga Kabupaten Demak melaporkan permasalahan sampah liar maupun pencemaran lingkungan (air/udara). Dilengkapi dengan panel Backoffice DLH untuk pengelolaan disposisi petugas lapangan, status penanganan, peta spasial (marker cluster & heatmap), serta ekspor data rekapitulasi.
+Aplikasi web terintegrasi untuk melayani pengaduan masyarakat terkait masalah lingkungan di wilayah Kabupaten Demak, dilengkapi dengan sistem pemetaan koordinat (GPS) dan manajemen disposisi penanganan oleh petugas Dinas Lingkungan Hidup.
 
----
+## 🚀 Fitur Utama
 
-## 🛠️ Tech Stack & Spesifikasi
+### Portal Warga (Publik)
+* **Pelaporan Tanpa Login**: Warga bisa langsung melapor tanpa proses registrasi yang rumit.
+* **Deteksi GPS Otomatis**: Integrasi Leaflet.js untuk mendeteksi lokasi otomatis atau menandai manual di peta.
+* **Upload Foto Bukti**: Mendukung upload hingga 3 foto sekaligus dengan pratinjau instan.
+* **Tracking Laporan**: Warga mendapatkan *Kode Tiket* unik untuk memantau sejauh mana laporannya ditangani.
 
-- **Backend Framework**: PHP (Laravel 13 - Laravel 11 skeleton modern)
-- **Database**: MySQL 8.4 (dilengkapi data koordinat spasial latitude & longitude)
-- **Frontend Framework**: Bootstrap 5 (Responsive Web Design) & Vanilla JavaScript
-- **Peta Spasial**: Leaflet.js (OpenStreetMap) — *Gratis, tanpa API Key Google Maps*
-- **Visualisasi Grafik**: Chart.js
-- **Paket Integrasi**:
-  - `barryvdh/laravel-dompdf` (Ekspor PDF rekapitulasi)
-  - `maatwebsite/excel` (Ekspor Excel rekapitulasi)
+### Backoffice (Admin & Petugas)
+* **Dashboard Analitik**: Menampilkan ringkasan statistik, grafik kategori, dan status penanganan hari ini.
+* **Peta Sebaran Laporan**: Peta interaktif (Leaflet MarkerCluster) untuk melihat titik-titik rawan masalah lingkungan.
+* **Manajemen Disposisi**: Admin dapat meneruskan (assign) laporan ke petugas lapangan spesifik.
+* **Pelaporan Hasil (Resolusi)**: Petugas wajib mengunggah foto bukti penyelesaian sebelum menutup laporan.
+* **Export PDF**: Fitur cetak rekapitulasi laporan bulanan untuk arsip DLH.
 
----
-
-## ⚙️ Persyaratan Sistem (Prerequisites)
-
-Sebelum menjalankan aplikasi, pastikan komputer Anda telah terpasang:
-1. **Laragon** (atau XAMPP) dengan:
-   - **PHP >= 8.2** (Rekomendasi PHP 8.3)
-   - **MySQL >= 8.0**
-2. **Composer** (untuk dependensi PHP)
-3. **Node.js** & **NPM** (untuk frontend compilation jika diperlukan, namun semua CSS/JS di aplikasi ini menggunakan CDN + Custom CSS/JS terintegrasi agar ringan)
+## 🛠️ Tech Stack
+* **Framework**: Laravel 11 (PHP 8.3)
+* **Database**: MySQL 8.x
+* **Frontend CSS**: Bootstrap 5
+* **Peta/Maps**: Leaflet.js (OpenStreetMap)
+* **Export PDF**: Barryvdh/DomPDF
 
 ---
 
-## 🚀 Panduan Instalasi di Localhost (Laragon)
+## 💻 Panduan Instalasi & Menjalankan Aplikasi Secara Lokal (Laragon/XAMPP)
 
-Ikuti langkah-langkah berikut untuk menjalankan aplikasi:
+Ikuti langkah-langkah berikut untuk menjalankan aplikasi di komputer lokal Anda:
 
-### 1. Persiapan Database MySQL
-1. Buka **Laragon** lalu klik **Start All**.
-2. Klik tombol **Database** (atau gunakan phpMyAdmin / HeidiSQL).
-3. Buat database baru dengan nama: **`dlh_demak`**.
+### 1. Persiapan Environment
+1. Pastikan Laragon/XAMPP sudah berjalan (Apache & MySQL).
+2. Buka Terminal/Command Prompt, masuk ke folder project ini.
+   ```bash
+   cd c:\laragon\www\"(DLH) Kabupaten Demak"
+   ```
 
-### 2. Konfigurasi Environment (`.env`)
-Buka file `.env` di root folder project, pastikan konfigurasi database sudah sesuai:
-```env
-DB_CONNECTION=mysql
-DB_HOST=127.0.0.1
-DB_PORT=3306
-DB_DATABASE=dlh_demak
-DB_USERNAME=root
-DB_PASSWORD=
-```
-
-### 3. Jalankan Migrasi Database dan Seeders
-Gunakan terminal untuk membuat tabel dan mengisi data wilayah Demak (14 kecamatan + desa) beserta 20 laporan pengaduan dummy:
+### 2. Konfigurasi Dependensi
+Jalankan perintah composer untuk menginstal semua library yang dibutuhkan:
 ```bash
-php artisan migrate:fresh --seed
+composer install
 ```
 
-### 4. Jalankan Server Laravel
-Mulai server development lokal Anda:
+### 3. Konfigurasi Environment & Storage
+Buat file environment dan tautkan folder storage untuk menyimpan foto:
+```bash
+copy .env.example .env
+php artisan key:generate
+php artisan storage:link
+```
+
+### 4. Setup Database
+1. Buka aplikasi database client (misal: HeidiSQL / phpMyAdmin).
+2. Buat database baru dengan nama `dlh_demak`.
+3. Jalankan migrasi dan seeder untuk membuat struktur tabel dan mengisi data dummy (20 laporan tersebar se-Demak):
+   ```bash
+   php artisan migrate:fresh --seed
+   ```
+
+### 5. Menjalankan Server
+Jika Anda menggunakan Laragon, aplikasi sudah bisa diakses melalui URL: 
+`http://dlh-kabupaten-demak.test` (atau sesuai nama virtual host Laragon Anda).
+
+Jika ingin menjalankan server artisan bawaan Laravel:
 ```bash
 php artisan serve
 ```
-Aplikasi sekarang dapat diakses melalui browser di alamat: **[http://localhost:8000](http://localhost:8000)**.
+Buka browser dan akses: `http://localhost:8000`
 
 ---
 
-## 🔑 Akun Uji Coba (Login Backoffice)
+## 🔑 Data Login Dummy (Seeder)
 
-Untuk masuk ke dashboard admin/petugas, kunjungi halaman **`http://localhost:8000/login`** dan gunakan akun berikut:
+Anda dapat menggunakan akun berikut untuk masuk ke Dashboard Admin/Petugas (`/login`):
 
-### 1. Akun Administrator (Akses Penuh)
-- **Email**: `admin@dlh-demak.go.id`
-- **Password**: `password`
-- **Fitur**: Statistik lengkap, pengelolaan status laporan, disposisi petugas lapangan, ekspor data PDF/Excel, dan peta sebaran interaktif.
+**1. Administrator (Bisa melihat semua data, export PDF, disposisi)**
+* **Email:** admin@dlh-demak.go.id
+* **Password:** password
 
-### 2. Akun Petugas Lapangan (Akses Terbatas)
-- **Email**: `budi.petugas@dlh-demak.go.id` atau `siti.petugas@dlh-demak.go.id`
-- **Password**: `password`
-- **Fitur**: Melihat tugas pengerjaan yang didisposisikan, mengunggah foto bukti penyelesaian (foto lokasi bersih), dan menulis catatan penyelesaian.
+**2. Petugas Lapangan (Hanya melihat laporan yang ditugaskan kepadanya)**
+* **Email:** budi@dlh-demak.go.id (Atau petugas1/2/3)
+* **Password:** password
 
 ---
 
-## 📋 Fitur Utama Aplikasi
+## 📄 Struktur Direktori Penting
+* `app/Http/Controllers/Public` -> Logika sistem portal warga
+* `app/Http/Controllers/Admin` -> Logika sistem backoffice
+* `app/Services` -> *Business logic* yang kompleks (Upload file, generate tiket)
+* `resources/views` -> Tampilan UI (Blade templates Bootstrap 5)
+* `public/js` -> Script JavaScript kustom (Leaflet map & drag-drop foto)
 
-### 1. Portal Warga (Responsive / PWA-Ready)
-- **Form Laporan Cepat**: Mengisi data pelapor (Nama & No. WhatsApp) tanpa login.
-- **Deteksi GPS Otomatis**: Secara otomatis mendeteksi koordinat latitude/longitude menggunakan sensor GPS smartphone/laptop.
-- **Marker Peta Draggable**: Warga dapat mengeklik dan menggeser marker pada peta Leaflet untuk menyesuaikan titik lokasi kejadian secara presisi.
-- **Reverse Geocoding**: Mengonversi titik koordinat GPS menjadi alamat nama jalan secara otomatis (via OpenStreetMap Nominatim API).
-- **Foto Bukti**: Warga mengunggah foto bukti tumpukan sampah atau pencemaran.
-- **Kode Tiket Unik**: Menghasilkan kode tiket dengan format `DLH-YYYYMMDD-XXX` untuk pelacakan.
-- **Lacak Laporan**: Lacak timeline penanganan real-time berdasarkan kode tiket atau nomor WhatsApp pelapor.
-
-### 2. Dashboard Admin (Backoffice Staff)
-- **Statistik & Tren**: Panel ringkasan statistik status pengaduan dan grafik tren bulanan menggunakan Chart.js.
-- **Tabel Pengaduan & Filter**: Daftar aduan masuk yang dapat difilter berdasarkan Status, Kategori, Kecamatan, dan Tanggal.
-- **Disposisi Petugas**: Admin menunjuk petugas lapangan tertentu untuk menangani aduan.
-- **Bukti Penyelesaian**: Petugas mengunggah foto lokasi setelah dibersihkan dan menulis laporan penutupan tiket.
-- **Peta Sebaran Laporan**: Peta Leaflet dengan fitur cluster marker untuk menandai penumpukan sampah liar dan area rawan.
-- **Heatmap Layer**: Tombol filter untuk mengubah visualisasi peta menjadi peta panas (heatmap) guna mendeteksi area dengan tingkat aduan tertinggi di Demak.
-- **Ekspor Laporan**: Tombol instan untuk mengunduh rekapitulasi data dalam format PDF landscape terformat dan Excel `.xlsx`.
-
----
-
-## 📂 Struktur Folder Utama
-- `app/Http/Controllers/` — Logika Backend API, autentikasi, publik, dan admin.
-- `app/Models/` — Model database (User, Report, Kecamatan, Kelurahan).
-- `database/migrations/` — Skema tabel MySQL.
-- `database/seeders/` — Pengisi data wilayah Demak dan laporan simulasi.
-- `public/css/custom.css` — Kustomisasi style warna hijau-oranye DLH.
-- `public/js/` — Logika peta Leaflet untuk form warga, heatmap admin, dan Chart.js.
-- `resources/views/` — Templating Blade HTML.
-- `routes/web.php` — Seluruh alur routing aplikasi.
-
----
-*Dibuat untuk memenuhi tugas magang di Dinas Lingkungan Hidup (DLH) Kabupaten Demak.*
+> **Catatan Developer:**
+> Basis kode ini dirancang menggunakan prinsip MVC yang bersih dan sudah dilengkapi validasi pada sisi server maupun klien. Siap untuk dikembangkan lebih lanjut.
