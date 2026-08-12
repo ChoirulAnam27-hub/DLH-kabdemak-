@@ -117,14 +117,48 @@
                             @endif
                         </td>
                         <td class="text-end pe-4">
-                            <a href="{{ route('admin.reports.show', $report->id) }}" class="btn btn-sm btn-outline-primary mb-1">
+                            <a href="{{ route('admin.reports.show', $report->id) }}" class="btn btn-sm btn-outline-primary mb-1 w-100">
                                 <i class="bi bi-eye"></i> Detail
                             </a>
                             @if(auth()->user()->role === 'petugas')
-                            <br>
-                            <a href="https://www.google.com/maps/dir/?api=1&destination={{ $report->latitude }},{{ $report->longitude }}" target="_blank" class="btn btn-sm btn-dark text-white shadow-sm">
+                            <a href="https://www.google.com/maps/dir/?api=1&destination={{ $report->latitude }},{{ $report->longitude }}" target="_blank" class="btn btn-sm btn-dark text-white shadow-sm mb-1 w-100">
                                 <i class="bi bi-cursor-fill text-warning"></i> Navigasi
                             </a>
+                                @if($report->status === 'diproses')
+                                <button type="button" class="btn btn-sm btn-success text-white shadow-sm w-100" data-bs-toggle="modal" data-bs-target="#uploadModal{{ $report->id }}">
+                                    <i class="bi bi-camera-fill"></i> Upload Bukti
+                                </button>
+                                
+                                <!-- Modal Upload untuk Petugas -->
+                                <div class="modal fade text-start" id="uploadModal{{ $report->id }}" tabindex="-1" aria-hidden="true">
+                                    <div class="modal-dialog modal-dialog-centered">
+                                        <div class="modal-content border-0 shadow">
+                                            <div class="modal-header bg-success text-white border-0">
+                                                <h6 class="modal-title fw-bold"><i class="bi bi-cloud-arrow-up-fill me-2"></i>Upload Bukti Penyelesaian</h6>
+                                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body p-4 bg-light">
+                                                <div class="mb-3 text-center">
+                                                    <span class="badge bg-secondary mb-2">{{ $report->ticket_code }}</span>
+                                                    <p class="small text-muted mb-0">{{ $report->address }}</p>
+                                                </div>
+                                                <form action="{{ route('admin.reports.upload-resolution', $report->id) }}" method="POST" enctype="multipart/form-data">
+                                                    @csrf
+                                                    <div class="mb-3">
+                                                        <label class="form-label fw-bold text-success">Ambil Foto / Galeri <span class="text-danger">*</span></label>
+                                                        <input type="file" name="photo" class="form-control form-control-lg" accept="image/*" capture="environment" required>
+                                                    </div>
+                                                    <div class="mb-4">
+                                                        <label class="form-label fw-bold">Catatan Tindakan</label>
+                                                        <textarea name="caption" class="form-control" rows="2" placeholder="Contoh: Sampah sudah diangkut ke TPA..."></textarea>
+                                                    </div>
+                                                    <button type="submit" class="btn btn-success btn-lg w-100 fw-bold py-3 shadow-sm"><i class="bi bi-upload me-2"></i> KIRIM BUKTI</button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                @endif
                             @endif
                         </td>
                     </tr>

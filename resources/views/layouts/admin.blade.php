@@ -124,9 +124,19 @@
                     <a href="{{ route('admin.export.excel') }}" class="text-success"><i class="bi bi-file-earmark-excel-fill"></i> Export Excel</a>
                 </li>
                 @endif
-                <li class="{{ request()->routeIs('admin.reports.*') ? 'active' : '' }}">
+                
+                @if(auth()->user()->isAdmin())
+                <li class="{{ request()->routeIs('admin.reports.index') || (request()->routeIs('admin.reports.show') && !auth()->user()->isPetugas()) ? 'active' : '' }}">
                     <a href="{{ route('admin.reports.index') }}"><i class="bi bi-inbox-fill"></i> Manajemen Laporan</a>
                 </li>
+                @endif
+                
+                @if(auth()->user()->isPetugas())
+                <li class="{{ request()->routeIs('admin.reports.my-tasks', 'admin.reports.show') ? 'active' : '' }}">
+                    <a href="{{ route('admin.reports.my-tasks') }}"><i class="bi bi-list-check"></i> Tugas Saya</a>
+                </li>
+                @endif
+                
                 <li class="{{ request()->routeIs('admin.map') ? 'active' : '' }}">
                     <a href="{{ route('admin.map') }}"><i class="bi bi-map-fill"></i> Peta Sebaran</a>
                 </li>

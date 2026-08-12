@@ -29,14 +29,6 @@ class ReportManagementController extends Controller
     {
         $query = Report::with(['category', 'assignedUser', 'evidencePhotos'])->orderBy('created_at', 'desc');
 
-        // Jika login sebagai petugas, hanya lihat laporan yang ditugaskan padanya (kecuali pending)
-        if (auth()->user()->isPetugas()) {
-            $query->where(function($q) {
-                $q->where('assigned_to', auth()->id())
-                  ->orWhere('status', 'pending');
-            });
-        }
-
         if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
@@ -65,6 +57,27 @@ class ReportManagementController extends Controller
         $kecamatans = Kecamatan::orderBy('name')->get();
         
         return view('admin.reports.index', compact('reports', 'categories', 'kecamatans'));
+    }
+
+    /**
+     * Tampilkan daftar tugas untuk Petugas (Mobile Friendly)
+     */
+    public function myTasks(Request $request)
+    {
+        $query = Report::with(['category', 'evidencePhotos'])
+            ->where('assigned_to', auth()->id())
+            ->orderBy('created_at', 'desc');
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        } else {
+            // Default: tampilkan yang belum selesai
+            $query->whereIn('status', ['pending', 'diproses']);
+        }
+
+        $reports = $query->paginate(10)->withQueryString();
+        
+        return view('admin.reports.my-tasks', compact('reports'));
     }
 
     /**

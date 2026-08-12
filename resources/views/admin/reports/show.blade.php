@@ -72,15 +72,20 @@
         </div>
 
         <!-- Peta Lokasi -->
-        <div class="card mb-4">
-            <div class="card-header pt-4 pb-0 px-4 border-0">
+        <div class="card mb-4 shadow-sm border-0">
+            <div class="card-header pt-4 pb-0 px-4 border-0 bg-transparent">
                 <h6 class="fw-bold"><i class="bi bi-geo-alt-fill text-danger me-2"></i>Titik Koordinat (GPS)</h6>
             </div>
             <div class="card-body p-4">
-                <div id="map" class="mb-3"></div>
-                <div class="d-flex justify-content-between align-items-center">
-                    <code class="text-dark bg-light px-2 py-1 rounded">{{ $report->latitude }}, {{ $report->longitude }}</code>
-                    <a href="https://www.google.com/maps/search/?api=1&query={{ $report->latitude }},{{ $report->longitude }}" target="_blank" class="btn btn-sm btn-outline-primary">Buka di Google Maps</a>
+                <div id="map" class="mb-3" style="border-radius: 12px; border: 1px solid #dee2e6;"></div>
+                
+                <div class="d-grid gap-2">
+                    <a href="https://www.google.com/maps/search/?api=1&query={{ $report->latitude }},{{ $report->longitude }}" target="_blank" class="btn btn-lg btn-primary fw-bold text-uppercase py-3 rounded-3 shadow-sm">
+                        <i class="bi bi-geo-alt-fill me-2 fs-5"></i> Buka Rute di Google Maps
+                    </a>
+                </div>
+                <div class="text-center mt-2">
+                    <code class="text-muted small">{{ $report->latitude }}, {{ $report->longitude }}</code>
                 </div>
             </div>
         </div>
@@ -134,12 +139,22 @@
                         
                         <!-- Form Upload (Hanya tampil jika status diproses) -->
                         @if($report->status === 'diproses' && (auth()->user()->isAdmin() || auth()->id() === $report->assigned_to))
-                        <form action="{{ route('admin.reports.upload-resolution', $report->id) }}" method="POST" enctype="multipart/form-data">
-                            @csrf
-                            <input type="file" name="photo" class="form-control form-control-sm mb-2" accept="image/*" required>
-                            <input type="text" name="caption" class="form-control form-control-sm mb-2" placeholder="Catatan opsional...">
-                            <button type="submit" class="btn btn-sm btn-success w-100"><i class="bi bi-upload me-1"></i> Upload Foto Penyelesaian</button>
-                        </form>
+                        <div class="bg-light p-3 rounded-4 border border-success border-opacity-50 mt-3">
+                            <h6 class="fw-bold text-success mb-3"><i class="bi bi-camera-fill me-1"></i> Ambil Foto Penyelesaian</h6>
+                            <form action="{{ route('admin.reports.upload-resolution', $report->id) }}" method="POST" enctype="multipart/form-data">
+                                @csrf
+                                <div class="mb-3">
+                                    <input type="file" name="photo" class="form-control form-control-lg" accept="image/*" capture="environment" required>
+                                    <small class="text-muted d-block mt-1"><i class="bi bi-info-circle me-1"></i> Buka dari HP untuk langsung foto.</small>
+                                </div>
+                                <div class="mb-3">
+                                    <input type="text" name="caption" class="form-control form-control-lg" placeholder="Tambahkan catatan (opsional)...">
+                                </div>
+                                <button type="submit" class="btn btn-lg btn-success w-100 fw-bold py-3 rounded-3 shadow-sm">
+                                    <i class="bi bi-cloud-arrow-up-fill me-2 fs-5"></i> SUBMIT PENYELESAIAN
+                                </button>
+                            </form>
+                        </div>
                         @endif
                         @endif
                     </div>
@@ -179,25 +194,29 @@
                 <form action="{{ route('admin.reports.update-status', $report->id) }}" method="POST">
                     @csrf
                     @method('PUT')
-                    <label class="form-label small fw-bold">Ubah Status Laporan</label>
-                    <select name="status" id="statusSelect" class="form-select mb-2" required>
+                    <label class="form-label fw-bold">Ubah Status Laporan</label>
+                    <select name="status" id="statusSelect" class="form-select form-select-lg mb-3" required>
                         <option value="pending" {{ $report->status == 'pending' ? 'selected' : '' }}>Pending (Menunggu)</option>
                         <option value="diproses" {{ $report->status == 'diproses' ? 'selected' : '' }}>Diproses (Sedang Ditangani)</option>
                         <option value="selesai" {{ $report->status == 'selesai' ? 'selected' : '' }}>Selesai (Tuntas)</option>
-                        <option value="ditolak" {{ $report->status == 'ditolak' ? 'selected' : '' }}>Ditolak (Tidak Valid/Bukan Wewenang)</option>
+                        <option value="ditolak" {{ $report->status == 'ditolak' ? 'selected' : '' }}>Ditolak (Tidak Valid)</option>
                     </select>
                     
-                    <div id="rejectionReasonContainer" class="mb-2 d-none">
+                    <div id="rejectionReasonContainer" class="mb-3 d-none">
                         <label class="form-label small fw-bold text-danger">Alasan Penolakan <span class="text-danger">*</span></label>
-                        <textarea name="rejection_reason" id="rejectionReason" class="form-control form-control-sm" rows="2" placeholder="Wajib diisi jika ditolak...">{{ $report->rejection_reason }}</textarea>
+                        <textarea name="rejection_reason" id="rejectionReason" class="form-control form-control-lg" rows="2" placeholder="Wajib diisi jika ditolak...">{{ $report->rejection_reason }}</textarea>
                     </div>
 
-                    <textarea name="notes" class="form-control form-control-sm mb-3" rows="2" placeholder="Catatan internal perubahan status (Opsional)..."></textarea>
+                    <textarea name="notes" class="form-control mb-3" rows="2" placeholder="Catatan internal (Opsional)..."></textarea>
                     
                     @if($report->status !== 'selesai' && $report->status !== 'ditolak')
-                    <button type="submit" class="btn btn-success w-100 fw-bold">Simpan Status</button>
+                    <button type="submit" class="btn btn-lg btn-success w-100 fw-bold py-3 rounded-3 shadow-sm">
+                        <i class="bi bi-save-fill me-2"></i> SIMPAN STATUS
+                    </button>
                     @else
-                    <button type="submit" class="btn btn-secondary w-100" onclick="return confirm('Laporan sudah selesai/ditolak. Yakin ingin mengubah statusnya lagi?')">Revisi Status</button>
+                    <button type="submit" class="btn btn-lg btn-outline-secondary w-100 py-3 rounded-3" onclick="return confirm('Laporan sudah selesai/ditolak. Yakin ingin mengubah statusnya lagi?')">
+                        <i class="bi bi-arrow-counterclockwise me-2"></i> REVISI STATUS
+                    </button>
                     @endif
                 </form>
             </div>

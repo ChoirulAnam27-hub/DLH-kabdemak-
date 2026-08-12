@@ -64,7 +64,16 @@ Route::prefix('admin')->middleware(['auth', RoleMiddleware::class])->group(funct
     
     // Manajemen Laporan
     Route::prefix('laporan')->group(function () {
-        Route::get('/', [ReportManagementController::class, 'index'])->name('admin.reports.index');
+        // Halaman Index (Tabel Laporan) khusus Admin
+        Route::get('/', [ReportManagementController::class, 'index'])
+            ->name('admin.reports.index')
+            ->middleware(RoleMiddleware::class . ':admin');
+            
+        // Halaman Tugas Saya khusus Petugas
+        Route::get('/tugas-saya', [ReportManagementController::class, 'myTasks'])
+            ->name('admin.reports.my-tasks')
+            ->middleware(RoleMiddleware::class . ':petugas');
+
         Route::get('/{report}', [ReportManagementController::class, 'show'])->name('admin.reports.show');
         Route::put('/{report}/status', [ReportManagementController::class, 'updateStatus'])->name('admin.reports.update-status');
         Route::put('/{report}/assign', [ReportManagementController::class, 'assign'])->name('admin.reports.assign')->middleware(RoleMiddleware::class . ':admin'); // Hanya admin
