@@ -90,7 +90,7 @@
                             <div class="row gy-3">
                                 @foreach($categories as $cat)
                                 <div class="col-md-4 col-sm-6">
-                                    <input type="radio" class="btn-check" name="category_id" id="cat_{{ $cat->id }}" value="{{ $cat->id }}" {{ old('category_id') == $cat->id ? 'checked' : '' }} required>
+                                    <input type="radio" class="btn-check" name="category_id" id="cat_{{ $cat->id }}" value="{{ $cat->id }}" data-slug="{{ $cat->slug }}" {{ old('category_id') == $cat->id ? 'checked' : '' }} required>
                                     <label class="btn btn-outline-secondary w-100 text-start d-flex align-items-center" for="cat_{{ $cat->id }}" style="height: 100%;">
                                         <i class="{{ $cat->icon }} fs-4 me-3" style="color: {{ $cat->color }}"></i>
                                         <span>{{ $cat->name }}</span>
@@ -109,14 +109,30 @@
 
                         <div class="mb-4">
                             <label class="form-label fw-semibold">Foto Bukti (Maks. 3 foto) <span class="text-danger">*</span></label>
-                            <input type="file" name="photos[]" id="photoInput" class="d-none" accept="image/jpeg,image/png,image/jpg" capture="environment" multiple>
+                            <input type="file" name="photos[]" id="photoInput" class="d-none" accept="image/jpeg,image/png,image/jpg,image/webp,image/heic,.jpg,.jpeg,.png,.webp,.heic" capture="environment" multiple>
                             <div class="upload-box" onclick="document.getElementById('photoInput').click()">
                                 <i class="bi bi-cloud-arrow-up text-dlh-primary" style="font-size: 3rem;"></i>
                                 <h6 class="mt-3">Klik untuk Memilih Foto</h6>
-                                <p class="text-muted small mb-0">Format: JPG, JPEG, PNG. Maksimal 5MB per foto.</p>
+                                <p class="text-muted small mb-0">Format: JPG, JPEG, PNG, WEBP. Maksimal 5MB per foto.</p>
                             </div>
                             <div id="photoPreviewContainer" class="preview-container"></div>
+                            @error('photos') <div class="text-danger small mt-2">{{ $message }}</div> @enderror
                             @error('photos.*') <div class="text-danger small mt-2">{{ $message }}</div> @enderror
+
+                            <!-- Hidden waste_type input for AI classification -->
+                            <input type="hidden" name="waste_type" id="wasteTypeInput" value="{{ old('waste_type') }}">
+
+                            <!-- AI Prediction Result Display -->
+                            <div id="aiClassificationResult" class="mt-3 d-none">
+                                <div class="d-flex align-items-center p-3 rounded-3" style="background: rgba(25, 135, 84, 0.05); border: 1px solid rgba(25, 135, 84, 0.2);">
+                                    <div class="spinner-border spinner-border-sm text-dlh-primary me-3 d-none" id="aiSpinner" role="status"></div>
+                                    <i class="bi bi-cpu-fill fs-4 me-3 text-dlh-primary" id="aiIcon"></i>
+                                    <div>
+                                        <span class="fw-bold text-dark d-block" id="aiMessage">AI menganalisis foto...</span>
+                                        <span class="text-muted small d-block" id="aiCategoryNote">Mendeteksi jenis sampah (Organik/Anorganik).</span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -191,6 +207,9 @@
 <!-- Custom JS -->
 <script src="{{ asset('js/leaflet-report.js') }}"></script>
 <script src="{{ asset('js/photo-upload.js') }}"></script>
+<!-- TensorFlow.js and AI Classifier -->
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.20.0/dist/tf.min.js"></script>
+<script src="{{ asset('js/waste-classifier.js') }}"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         // Toggle Anonymous
@@ -254,6 +273,181 @@
         // Trigger change if old kecamatan_id exists (e.g. back from validation error)
         if (kecSelect.value) {
             kecSelect.dispatchEvent(new Event('change'));
+        }
+
+        // =========================================
+        // INTEGRASI AI CNN (ORGANIK / ANORGANIK)
+        // =========================================
+        const photoInput = document.getElementById('photoInput');
+        const aiResultContainer = document.getElementById('aiClassificationResult');
+        const aiSpinner = document.getElementById('aiSpinner');
+        const aiIcon = document.getElementById('aiIcon');
+        const aiMessage = document.getElementById('aiMessage');
+        const aiCategoryNote = document.getElementById('aiCategoryNote');
+        const wasteTypeInput = document.getElementById('wasteTypeInput');
+        const descTextarea = document.querySelector('textarea[name="description"]');
+        
+        let latestAiResult = null;
+
+        function displayLoadingState() {
+            aiResultContainer.classList.remove('d-none');
+            aiSpinner.classList.remove('d-none');
+            aiIcon.classList.add('d-none');
+            aiMessage.innerText = 'AI sedang menganalisis foto...';
+            aiCategoryNote.innerText = 'Harap tunggu sebentar.';
+        }
+
+        function displaySuccessState(result) {
+            aiSpinner.classList.add('d-none');
+            aiIcon.className = 'bi bi-cpu-fill fs-4 me-3 text-dlh-primary';
+            aiIcon.classList.remove('d-none');
+            
+            const confidencePercent = (result.topConfidence * 100).toFixed(1);
+            aiMessage.innerText = `✨ AI mendeteksi: Sampah ${result.topLabel} (${confidencePercent}%)`;
+        }
+
+        function displayErrorState() {
+            aiSpinner.classList.add('d-none');
+            aiIcon.className = 'bi bi-exclamation-triangle-fill fs-4 me-3 text-warning';
+            aiIcon.classList.remove('d-none');
+            aiMessage.innerText = 'Prediksi AI tidak tersedia saat ini';
+            aiCategoryNote.innerText = 'Anda tetap dapat melanjutkan pengisian form secara manual.';
+        }
+
+        function applyAiResult() {
+            const checkedCategoryInput = document.querySelector('input[name="category_id"]:checked');
+            
+            if (!latestAiResult) {
+                wasteTypeInput.value = '';
+                return;
+            }
+
+            const isSampahMenumpuk = checkedCategoryInput && checkedCategoryInput.getAttribute('data-slug') === 'sampah-menumpuk';
+            
+            if (isSampahMenumpuk) {
+                // Set the hidden field value to lowercase ('organik' or 'anorganik')
+                wasteTypeInput.value = latestAiResult.topLabel.toLowerCase();
+                
+                // Prepend prediction info and auto-write description
+                let currentDesc = descTextarea.value.trim();
+                const prefixPattern = /^\[AI:\s*(Organik|Anorganik)\]\s*/i;
+                const newPrefix = `[AI: ${latestAiResult.topLabel}] `;
+                
+                const addressVal = document.getElementById('inputAddress') ? document.getElementById('inputAddress').value.trim() : '';
+                const addressSuffix = addressVal ? ` Sampah menumpuk di ${addressVal}.` : '';
+                
+                // If description is empty or default template, write it fully
+                if (currentDesc === '' || currentDesc === 'Sampah menumpuk' || /^Sampah menumpuk di.*/.test(currentDesc)) {
+                    descTextarea.value = `${newPrefix}Sampah menumpuk${addressSuffix}`;
+                } else {
+                    // Update/prepend only the prefix if user wrote custom description
+                    if (prefixPattern.test(currentDesc)) {
+                        descTextarea.value = currentDesc.replace(prefixPattern, newPrefix);
+                    } else {
+                        descTextarea.value = newPrefix + currentDesc;
+                    }
+                }
+                
+                aiCategoryNote.innerText = 'Saran tipe sampah telah diterapkan pada detail laporan.';
+            } else {
+                // Clear hidden field for other categories
+                wasteTypeInput.value = '';
+                
+                // Remove prefix if it exists
+                let currentDesc = descTextarea.value;
+                const prefixPattern = /^\[AI:\s*(Organik|Anorganik)\]\s*/i;
+                if (prefixPattern.test(currentDesc)) {
+                    descTextarea.value = currentDesc.replace(prefixPattern, '').trim();
+                }
+                
+                aiCategoryNote.innerText = 'Prediksi AI hanya berlaku untuk kategori Sampah Menumpuk.';
+            }
+        }
+
+        if (photoInput) {
+            photoInput.addEventListener('change', function() {
+                const files = this.files;
+                if (files && files.length > 0) {
+                    const file = files[0];
+                    
+                    // Validate file size (same as photo-upload.js so we only process if size is OK)
+                    const maxSize = 5 * 1024 * 1024;
+                    if (file.size > maxSize) {
+                        latestAiResult = null;
+                        aiResultContainer.classList.add('d-none');
+                        wasteTypeInput.value = '';
+                        return;
+                    }
+                    
+                    displayLoadingState();
+                    
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const img = new Image();
+                        img.onload = async function() {
+                            try {
+                                // Load model and classify
+                                latestAiResult = await WasteClassifier.classify(img);
+                                displaySuccessState(latestAiResult);
+                                applyAiResult();
+                            } catch (err) {
+                                console.error('[AI Classifier] Error running classification:', err);
+                                latestAiResult = null;
+                                displayErrorState();
+                                wasteTypeInput.value = '';
+                            }
+                        };
+                        img.onerror = function() {
+                            console.error('[AI Classifier] Failed to load image element');
+                            latestAiResult = null;
+                            displayErrorState();
+                            wasteTypeInput.value = '';
+                        };
+                        img.src = e.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    latestAiResult = null;
+                    aiResultContainer.classList.add('d-none');
+                    wasteTypeInput.value = '';
+                    
+                    // Clean up description prefix if any
+                    let currentDesc = descTextarea.value;
+                    const prefixPattern = /^\[AI:\s*(Organik|Anorganik)\]\s*/i;
+                    if (prefixPattern.test(currentDesc)) {
+                        descTextarea.value = currentDesc.replace(prefixPattern, '').trim();
+                    }
+                }
+            });
+        }
+
+        // Listen to category changes to apply/remove AI suggestion dynamically
+        document.querySelectorAll('input[name="category_id"]').forEach(input => {
+            input.addEventListener('change', function() {
+                applyAiResult();
+            });
+        });
+
+        // Intercept programmatic value changes to address input (e.g. from reverseGeocode)
+        const addressInput = document.getElementById('inputAddress');
+        if (addressInput) {
+            const descriptor = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value');
+            if (descriptor) {
+                Object.defineProperty(addressInput, 'value', {
+                    get: function() {
+                        return descriptor.get.call(this);
+                    },
+                    set: function(val) {
+                        descriptor.set.call(this, val);
+                        // Trigger AI result update with new address details
+                        applyAiResult();
+                    }
+                });
+            }
+            
+            // Standard user input triggers
+            addressInput.addEventListener('change', applyAiResult);
+            addressInput.addEventListener('input', applyAiResult);
         }
     });
 </script>
