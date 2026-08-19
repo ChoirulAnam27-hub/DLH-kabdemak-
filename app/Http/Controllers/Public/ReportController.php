@@ -27,7 +27,7 @@ class ReportController extends Controller
     public function create()
     {
         $categories = Category::active()->get();
-        
+
         // Daftar kecamatan di Demak (dari database)
         $kecamatans = Kecamatan::with('desas')->orderBy('name')->get();
 
@@ -79,17 +79,17 @@ class ReportController extends Controller
 
         $kec = Kecamatan::find($validated['kecamatan_id']);
         $validated['kecamatan'] = $kec->name ?? '';
-        
+
         if (!empty($validated['desa_id'])) {
             $desa = \App\Models\Desa::find($validated['desa_id']);
             $validated['kelurahan'] = $desa->name ?? '';
         }
 
         $photos = $request->file('photos') ?? [];
-        
-        // Batasi maksimal 3 foto
-        if (count($photos) > 3) {
-            return back()->withInput()->withErrors(['photos' => 'Maksimal 3 foto yang diperbolehkan.']);
+
+        // Batasi maksimal 1 foto
+        if (count($photos) > 1) {
+            return back()->withInput()->withErrors(['photos' => 'Maksimal 1 foto yang diperbolehkan.']);
         }
 
         try {

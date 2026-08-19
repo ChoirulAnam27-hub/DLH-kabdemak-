@@ -54,7 +54,7 @@
 
             <form action="{{ route('public.report.store') }}" method="POST" enctype="multipart/form-data" id="reportForm">
                 @csrf
-                
+
                 <div class="card border-0 shadow-sm rounded-4 mb-4">
                     <div class="card-header bg-white border-0 pt-4 pb-0 px-4 d-flex justify-content-between align-items-center">
                         <h5 class="fw-bold mb-0"><i class="bi bi-person-circle text-dlh-primary me-2"></i> Data Pelapor</h5>
@@ -108,8 +108,8 @@
                         </div>
 
                         <div class="mb-4">
-                            <label class="form-label fw-semibold">Foto Bukti (Maks. 3 foto) <span class="text-danger">*</span></label>
-                            <input type="file" name="photos[]" id="photoInput" class="d-none" accept="image/jpeg,image/png,image/jpg,image/webp,image/heic,.jpg,.jpeg,.png,.webp,.heic" capture="environment" multiple>
+                            <label class="form-label fw-semibold">Foto Bukti <span class="text-danger">*</span></label>
+                            <input type="file" name="photos[]" id="photoInput" class="d-none" accept="image/jpeg,image/png,image/jpg,image/webp,image/heic,.jpg,.jpeg,.png,.webp,.heic" capture="environment">
                             <div class="upload-box" onclick="document.getElementById('photoInput').click()">
                                 <i class="bi bi-cloud-arrow-up text-dlh-primary" style="font-size: 3rem;"></i>
                                 <h6 class="mt-3">Klik untuk Memilih Foto</h6>
@@ -217,12 +217,12 @@
         const inputName = document.getElementById('reporterName');
         const inputPhone = document.getElementById('reporterPhone');
         const reqStars = document.querySelectorAll('.required-star');
-        
+
         function toggleAnonymous() {
             const isAnon = cbAnonymous.checked;
             inputName.disabled = isAnon;
             inputPhone.disabled = isAnon;
-            
+
             if (isAnon) {
                 inputName.removeAttribute('required');
                 inputPhone.removeAttribute('required');
@@ -233,7 +233,7 @@
                 reqStars.forEach(s => s.classList.remove('d-none'));
             }
         }
-        
+
         cbAnonymous.addEventListener('change', toggleAnonymous);
         toggleAnonymous(); // Init state
 
@@ -241,17 +241,17 @@
         const kecSelect = document.getElementById('kecamatanSelect');
         const desaSelect = document.getElementById('desaSelect');
         const desaLoader = document.getElementById('desaLoader');
-        
+
         const oldDesaId = '{{ old('desa_id') }}';
 
         kecSelect.addEventListener('change', function() {
             const kecId = this.value;
             desaSelect.innerHTML = '<option value="">Pilih Desa/Kelurahan...</option>';
-            
+
             if (kecId) {
                 desaLoader.classList.remove('d-none');
                 desaSelect.disabled = true;
-                
+
                 fetch(`/api/kecamatan/${kecId}/desas`)
                     .then(response => response.json())
                     .then(data => {
@@ -286,8 +286,9 @@
         const aiCategoryNote = document.getElementById('aiCategoryNote');
         const wasteTypeInput = document.getElementById('wasteTypeInput');
         const descTextarea = document.querySelector('textarea[name="description"]');
-        
+
         let latestAiResult = null;
+        let isAnalyzing = false;
 
         function displayLoadingState() {
             aiResultContainer.classList.remove('d-none');
@@ -298,15 +299,17 @@
         }
 
         function displaySuccessState(result) {
+            aiResultContainer.classList.remove('d-none');
             aiSpinner.classList.add('d-none');
             aiIcon.className = 'bi bi-cpu-fill fs-4 me-3 text-dlh-primary';
             aiIcon.classList.remove('d-none');
-            
+
             const confidencePercent = (result.topConfidence * 100).toFixed(1);
             aiMessage.innerText = `✨ AI mendeteksi: Sampah ${result.topLabel} (${confidencePercent}%)`;
         }
 
         function displayErrorState() {
+            aiResultContainer.classList.remove('d-none');
             aiSpinner.classList.add('d-none');
             aiIcon.className = 'bi bi-exclamation-triangle-fill fs-4 me-3 text-warning';
             aiIcon.classList.remove('d-none');
@@ -316,51 +319,57 @@
 
         function applyAiResult() {
             const checkedCategoryInput = document.querySelector('input[name="category_id"]:checked');
-            
-            if (!latestAiResult) {
-                wasteTypeInput.value = '';
-                return;
-            }
-
             const isSampahMenumpuk = checkedCategoryInput && checkedCategoryInput.getAttribute('data-slug') === 'sampah-menumpuk';
-            
+
             if (isSampahMenumpuk) {
-                // Set the hidden field value to lowercase ('organik' or 'anorganik')
-                wasteTypeInput.value = latestAiResult.topLabel.toLowerCase();
-                
-                // Prepend prediction info and auto-write description
-                let currentDesc = descTextarea.value.trim();
-                const prefixPattern = /^\[AI:\s*(Organik|Anorganik)\]\s*/i;
-                const newPrefix = `[AI: ${latestAiResult.topLabel}] `;
-                
-                const addressVal = document.getElementById('inputAddress') ? document.getElementById('inputAddress').value.trim() : '';
-                const addressSuffix = addressVal ? ` Sampah menumpuk di ${addressVal}.` : '';
-                
-                // If description is empty or default template, write it fully
-                if (currentDesc === '' || currentDesc === 'Sampah menumpuk' || /^Sampah menumpuk di.*/.test(currentDesc)) {
-                    descTextarea.value = `${newPrefix}Sampah menumpuk${addressSuffix}`;
-                } else {
-                    // Update/prepend only the prefix if user wrote custom description
-                    if (prefixPattern.test(currentDesc)) {
-                        descTextarea.value = currentDesc.replace(prefixPattern, newPrefix);
+                if (latestAiResult) {
+                    displaySuccessState(latestAiResult);
+
+                    // Set the hidden field value to lowercase ('organik' or 'anorganik')
+                    wasteTypeInput.value = latestAiResult.topLabel.toLowerCase();
+
+                    // Prepend prediction info and auto-write description
+                    let currentDesc = descTextarea.value.trim();
+                    const prefixPattern = /^\[AI:\s*(Organik|Anorganik)\]\s*/i;
+                    const newPrefix = `[AI: ${latestAiResult.topLabel}] `;
+
+                    const addressVal = document.getElementById('inputAddress') ? document.getElementById('inputAddress').value.trim() : '';
+                    const addressSuffix = addressVal ? ` Sampah menumpuk di ${addressVal}.` : '';
+
+                    // If description is empty or default template, write it fully
+                    if (currentDesc === '' || currentDesc === 'Sampah menumpuk' || /^Sampah menumpuk di.*/.test(currentDesc)) {
+                        descTextarea.value = `${newPrefix}Sampah menumpuk${addressSuffix}`;
                     } else {
-                        descTextarea.value = newPrefix + currentDesc;
+                        // Update/prepend only the prefix if user wrote custom description
+                        if (prefixPattern.test(currentDesc)) {
+                            descTextarea.value = currentDesc.replace(prefixPattern, newPrefix);
+                        } else {
+                            descTextarea.value = newPrefix + currentDesc;
+                        }
                     }
+
+                    aiCategoryNote.innerText = 'Saran tipe sampah telah diterapkan pada detail laporan.';
+                } else if (isAnalyzing) {
+                    displayLoadingState();
+                    wasteTypeInput.value = '';
+                } else if (photoInput.files && photoInput.files.length > 0) {
+                    displayErrorState();
+                    wasteTypeInput.value = '';
+                } else {
+                    aiResultContainer.classList.add('d-none');
+                    wasteTypeInput.value = '';
                 }
-                
-                aiCategoryNote.innerText = 'Saran tipe sampah telah diterapkan pada detail laporan.';
             } else {
                 // Clear hidden field for other categories
                 wasteTypeInput.value = '';
-                
+                aiResultContainer.classList.add('d-none');
+
                 // Remove prefix if it exists
                 let currentDesc = descTextarea.value;
                 const prefixPattern = /^\[AI:\s*(Organik|Anorganik)\]\s*/i;
                 if (prefixPattern.test(currentDesc)) {
                     descTextarea.value = currentDesc.replace(prefixPattern, '').trim();
                 }
-                
-                aiCategoryNote.innerText = 'Prediksi AI hanya berlaku untuk kategori Sampah Menumpuk.';
             }
         }
 
@@ -369,18 +378,20 @@
                 const files = this.files;
                 if (files && files.length > 0) {
                     const file = files[0];
-                    
+
                     // Validate file size (same as photo-upload.js so we only process if size is OK)
                     const maxSize = 5 * 1024 * 1024;
                     if (file.size > maxSize) {
                         latestAiResult = null;
+                        isAnalyzing = false;
                         aiResultContainer.classList.add('d-none');
                         wasteTypeInput.value = '';
                         return;
                     }
-                    
-                    displayLoadingState();
-                    
+
+                    isAnalyzing = true;
+                    applyAiResult();
+
                     const reader = new FileReader();
                     reader.onload = function(e) {
                         const img = new Image();
@@ -388,35 +399,28 @@
                             try {
                                 // Load model and classify
                                 latestAiResult = await WasteClassifier.classify(img);
-                                displaySuccessState(latestAiResult);
+                                isAnalyzing = false;
                                 applyAiResult();
                             } catch (err) {
                                 console.error('[AI Classifier] Error running classification:', err);
                                 latestAiResult = null;
-                                displayErrorState();
-                                wasteTypeInput.value = '';
+                                isAnalyzing = false;
+                                applyAiResult();
                             }
                         };
                         img.onerror = function() {
                             console.error('[AI Classifier] Failed to load image element');
                             latestAiResult = null;
-                            displayErrorState();
-                            wasteTypeInput.value = '';
+                            isAnalyzing = false;
+                            applyAiResult();
                         };
                         img.src = e.target.result;
                     };
                     reader.readAsDataURL(file);
                 } else {
                     latestAiResult = null;
-                    aiResultContainer.classList.add('d-none');
-                    wasteTypeInput.value = '';
-                    
-                    // Clean up description prefix if any
-                    let currentDesc = descTextarea.value;
-                    const prefixPattern = /^\[AI:\s*(Organik|Anorganik)\]\s*/i;
-                    if (prefixPattern.test(currentDesc)) {
-                        descTextarea.value = currentDesc.replace(prefixPattern, '').trim();
-                    }
+                    isAnalyzing = false;
+                    applyAiResult();
                 }
             });
         }
@@ -444,7 +448,7 @@
                     }
                 });
             }
-            
+
             // Standard user input triggers
             addressInput.addEventListener('change', applyAiResult);
             addressInput.addEventListener('input', applyAiResult);
