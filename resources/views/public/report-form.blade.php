@@ -109,7 +109,7 @@
 
                         <div class="mb-4">
                             <label class="form-label fw-semibold">Foto Bukti (Maks. 3 foto) <span class="text-danger">*</span></label>
-                            <input type="file" name="photos[]" id="photoInput" class="d-none" accept="image/jpeg,image/png,image/jpg" capture="environment" multiple>
+                            <input type="file" name="photos[]" id="photoInput" class="d-none" accept=".jpg,.jpeg,.png" multiple>
                             <div class="upload-box" onclick="document.getElementById('photoInput').click()">
                                 <i class="bi bi-cloud-arrow-up text-dlh-primary" style="font-size: 3rem;"></i>
                                 <h6 class="mt-3">Klik untuk Memilih Foto</h6>

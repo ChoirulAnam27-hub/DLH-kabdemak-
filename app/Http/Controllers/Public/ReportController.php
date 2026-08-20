@@ -51,7 +51,7 @@ class ReportController extends Controller
             'kelurahan' => 'nullable|string|max:100',
             'kecamatan_id' => 'required|exists:kecamatans,id',
             'desa_id' => 'nullable|exists:desas,id',
-            'photos.*' => 'image|mimes:jpeg,png,jpg|max:5120', // maks 5MB per foto
+            'photos.*' => 'image|max:5120', // maks 5MB per foto
         ];
 
         if (!$isAnonymous) {
@@ -66,8 +66,8 @@ class ReportController extends Controller
 
         $validated['is_anonymous'] = $isAnonymous;
         if ($isAnonymous) {
-            $validated['reporter_name'] = $validated['reporter_name'] ?: 'Anonim';
-            $validated['reporter_phone'] = $validated['reporter_phone'] ?: '0000000000';
+            $validated['reporter_name'] = $validated['reporter_name'] ?? 'Anonim';
+            $validated['reporter_phone'] = $validated['reporter_phone'] ?? '0000000000';
         }
 
         $kec = Kecamatan::find($validated['kecamatan_id']);
