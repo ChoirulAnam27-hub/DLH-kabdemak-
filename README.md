@@ -9,7 +9,7 @@ Aplikasi web terintegrasi untuk melayani pengaduan masyarakat terkait masalah li
 - **Pelaporan Tanpa Login**: Warga bisa langsung melapor tanpa proses registrasi, dengan opsi laporan anonim.
 - **Deteksi GPS Otomatis**: Integrasi Leaflet.js untuk mendeteksi lokasi otomatis atau menandai manual di peta.
 - **Upload Foto Bukti**: Mendukung upload foto bukti (JPG, JPEG, PNG, WEBP, HEIC) dengan pratinjau instan.
-- **Klasifikasi Sampah AI (CNN)**: Model MobileNetV2 berjalan langsung di browser via TensorFlow.js untuk mendeteksi jenis sampah **Organik / Anorganik** secara otomatis dari foto yang diunggah.
+- **Klasifikasi Sampah AI (CNN)**: Model MobileNetV2 berjalan langsung di browser via TensorFlow.js untuk mendeteksi jenis sampah **Organik / Anorganik** secara otomatis dari foto yang diunggah, lengkap dengan **Peringatan Otomatis** apabila tingkat kepercayaan rendah (< 65%) untuk mengindikasikan foto kurang jelas atau sampah campuran.
 - **Tracking Laporan**: Warga mendapatkan _Kode Tiket_ unik untuk memantau sejauh mana laporannya ditangani.
 - **Deteksi Duplikat**: Sistem memperingatkan jika ada laporan serupa di sekitar lokasi yang sama.
 
@@ -31,6 +31,7 @@ Saat warga mengunggah foto pada kategori **Sampah Menumpuk**, sistem secara otom
 2. Melakukan preprocessing gambar (resize 224×224, normalisasi [-1, 1]).
 3. Menjalankan prediksi dan menampilkan hasil klasifikasi (**Organik** atau **Anorganik**) beserta tingkat kepercayaan (%).
 4. Mengisi otomatis field `waste_type` pada laporan.
+5. **Deteksi Confidence Rendah (< 65%)**: Jika tingkat kepercayaan rendah, sistem akan menampilkan box peringatan visual kuning/oranye (_"⚠️ Kemungkinan sampah campuran / foto kurang jelas"_) beserta petunjuk untuk mengambil/mengunggah foto yang lebih fokus dan jelas.
 
 > Model dan label berada di folder `public/model/`. Untuk mengganti model, cukup timpa file `model.json`, `labels.json`, dan shard `.bin` di folder tersebut.
 
