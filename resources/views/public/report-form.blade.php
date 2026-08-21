@@ -33,6 +33,10 @@
         border-radius: 8px;
         position: relative;
     }
+    #aiClassificationResult .ai-result-box.low-confidence {
+        background: rgba(255, 193, 7, 0.08) !important;
+        border-color: rgba(255, 152, 0, 0.4) !important;
+    }
 </style>
 @endpush
 
@@ -124,7 +128,7 @@
 
                             <!-- AI Prediction Result Display -->
                             <div id="aiClassificationResult" class="mt-3 d-none">
-                                <div class="d-flex align-items-center p-3 rounded-3" style="background: rgba(25, 135, 84, 0.05); border: 1px solid rgba(25, 135, 84, 0.2);">
+                                <div class="d-flex align-items-center p-3 rounded-3 ai-result-box" style="background: rgba(25, 135, 84, 0.05); border: 1px solid rgba(25, 135, 84, 0.2);">
                                     <div class="spinner-border spinner-border-sm text-dlh-primary me-3 d-none" id="aiSpinner" role="status"></div>
                                     <i class="bi bi-cpu-fill fs-4 me-3 text-dlh-primary" id="aiIcon"></i>
                                     <div>
@@ -284,6 +288,7 @@
         const aiIcon = document.getElementById('aiIcon');
         const aiMessage = document.getElementById('aiMessage');
         const aiCategoryNote = document.getElementById('aiCategoryNote');
+        const aiResultBox = aiResultContainer ? aiResultContainer.querySelector('.ai-result-box') : null;
         const wasteTypeInput = document.getElementById('wasteTypeInput');
         const descTextarea = document.querySelector('textarea[name="description"]');
 
@@ -292,24 +297,40 @@
 
         function displayLoadingState() {
             aiResultContainer.classList.remove('d-none');
+            if (aiResultBox) aiResultBox.classList.remove('low-confidence');
             aiSpinner.classList.remove('d-none');
             aiIcon.classList.add('d-none');
             aiMessage.innerText = 'AI sedang menganalisis foto...';
             aiCategoryNote.innerText = 'Harap tunggu sebentar.';
         }
 
+        const LOW_CONFIDENCE_THRESHOLD = 0.65;
+
         function displaySuccessState(result) {
             aiResultContainer.classList.remove('d-none');
             aiSpinner.classList.add('d-none');
-            aiIcon.className = 'bi bi-cpu-fill fs-4 me-3 text-dlh-primary';
             aiIcon.classList.remove('d-none');
 
             const confidencePercent = (result.topConfidence * 100).toFixed(1);
-            aiMessage.innerText = `✨ AI mendeteksi: Sampah ${result.topLabel} (${confidencePercent}%)`;
+            const isLowConfidence = result.topConfidence < LOW_CONFIDENCE_THRESHOLD;
+
+            if (isLowConfidence) {
+                // State: confidence rendah → tampilan warning
+                if (aiResultBox) aiResultBox.classList.add('low-confidence');
+                aiIcon.className = 'bi bi-exclamation-triangle-fill fs-4 me-3 text-warning';
+                aiMessage.innerText = `⚠️ Kemungkinan sampah campuran / foto kurang jelas. Prediksi AI mendeteksi Sampah ${result.topLabel} dengan tingkat kepercayaan rendah. (${confidencePercent}%)`;
+                aiCategoryNote.innerText = 'Saran: pastikan foto fokus pada satu jenis sampah dan pencahayaan cukup, lalu coba unggah ulang untuk hasil yang lebih akurat.';
+            } else {
+                // State: confidence tinggi → tampilan sukses normal
+                if (aiResultBox) aiResultBox.classList.remove('low-confidence');
+                aiIcon.className = 'bi bi-cpu-fill fs-4 me-3 text-dlh-primary';
+                aiMessage.innerText = `✨ AI mendeteksi: Sampah ${result.topLabel} (${confidencePercent}%)`;
+            }
         }
 
         function displayErrorState() {
             aiResultContainer.classList.remove('d-none');
+            if (aiResultBox) aiResultBox.classList.remove('low-confidence');
             aiSpinner.classList.add('d-none');
             aiIcon.className = 'bi bi-exclamation-triangle-fill fs-4 me-3 text-warning';
             aiIcon.classList.remove('d-none');
@@ -348,7 +369,10 @@
                         }
                     }
 
-                    aiCategoryNote.innerText = 'Saran tipe sampah telah diterapkan pada detail laporan.';
+                    // Hanya set note default jika confidence tinggi (note low-confidence sudah di-set oleh displaySuccessState)
+                    if (latestAiResult.topConfidence >= LOW_CONFIDENCE_THRESHOLD) {
+                        aiCategoryNote.innerText = 'Saran tipe sampah telah diterapkan pada detail laporan.';
+                    }
                 } else if (isAnalyzing) {
                     displayLoadingState();
                     wasteTypeInput.value = '';
