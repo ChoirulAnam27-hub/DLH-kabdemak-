@@ -27,7 +27,7 @@ class ReportController extends Controller
     public function create()
     {
         $categories = Category::active()->get();
-        
+
         // Daftar kecamatan di Demak (dari database)
         $kecamatans = Kecamatan::with('desas')->orderBy('name')->get();
 
@@ -45,13 +45,14 @@ class ReportController extends Controller
             'reporter_email' => 'nullable|email|max:100',
             'category_id' => 'required|exists:categories,id',
             'description' => 'required|string',
+            'waste_type' => 'nullable|in:organik,anorganik',
             'latitude' => 'required|numeric',
             'longitude' => 'required|numeric',
             'address' => 'required|string',
             'kelurahan' => 'nullable|string|max:100',
             'kecamatan_id' => 'required|exists:kecamatans,id',
             'desa_id' => 'nullable|exists:desas,id',
-            'photos.*' => 'image|max:5120', // maks 5MB per foto
+            'photos.*' => 'image|mimes:jpeg,png,jpg,webp,heic,heif|max:5120', // maks 5MB per foto
         ];
 
         if (!$isAnonymous) {
@@ -62,27 +63,33 @@ class ReportController extends Controller
             $rules['reporter_phone'] = 'nullable|string|max:20';
         }
 
-        $validated = $request->validate($rules);
+        $messages = [
+            'photos.*.image' => 'File yang diunggah harus berupa file gambar.',
+            'photos.*.mimes' => 'Format foto harus berupa JPG, JPEG, PNG, WEBP, atau HEIC.',
+            'photos.*.max' => 'Ukuran foto maksimal 5MB per foto.',
+        ];
+
+        $validated = $request->validate($rules, $messages);
 
         $validated['is_anonymous'] = $isAnonymous;
         if ($isAnonymous) {
-            $validated['reporter_name'] = $validated['reporter_name'] ?? 'Anonim';
-            $validated['reporter_phone'] = $validated['reporter_phone'] ?? '0000000000';
+            $validated['reporter_name'] = ($validated['reporter_name'] ?? null) ?: 'Anonim';
+            $validated['reporter_phone'] = ($validated['reporter_phone'] ?? null) ?: '0000000000';
         }
 
         $kec = Kecamatan::find($validated['kecamatan_id']);
         $validated['kecamatan'] = $kec->name ?? '';
-        
+
         if (!empty($validated['desa_id'])) {
             $desa = \App\Models\Desa::find($validated['desa_id']);
             $validated['kelurahan'] = $desa->name ?? '';
         }
 
         $photos = $request->file('photos') ?? [];
-        
-        // Batasi maksimal 3 foto
-        if (count($photos) > 3) {
-            return back()->withInput()->withErrors(['photos' => 'Maksimal 3 foto yang diperbolehkan.']);
+
+        // Batasi maksimal 1 foto
+        if (count($photos) > 1) {
+            return back()->withInput()->withErrors(['photos' => 'Maksimal 1 foto yang diperbolehkan.']);
         }
 
         try {

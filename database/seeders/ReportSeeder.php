@@ -393,6 +393,18 @@ class ReportSeeder extends Seeder
                     'created_at' => $data['resolved_at'],
                     'updated_at' => $data['resolved_at'],
                 ]);
+            // Tambah foto bukti untuk laporan
+            $existingPhotos = \Illuminate\Support\Facades\Storage::disk('public')->files('reports/evidence');
+            if (!empty($existingPhotos)) {
+                $photoPath = $existingPhotos[$index % count($existingPhotos)];
+                ReportPhoto::create([
+                    'report_id' => $report->id,
+                    'photo_path' => $photoPath,
+                    'type' => 'bukti',
+                    'caption' => 'Foto Bukti Pengaduan',
+                    'created_at' => $date,
+                    'updated_at' => $date,
+                ]);
             }
         }
     }

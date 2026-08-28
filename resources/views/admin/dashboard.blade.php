@@ -119,7 +119,6 @@
         <div class="card">
             <div class="card-header pt-4 pb-3 px-4 d-flex justify-content-between align-items-center">
                 <h6 class="fw-bold mb-0">Laporan Terbaru Masuk</h6>
-                <a href="{{ route('admin.reports.index') }}" class="btn btn-sm btn-outline-primary">Lihat Semua Laporan</a>
             </div>
             <div class="card-body p-0">
                 <div class="table-responsive">

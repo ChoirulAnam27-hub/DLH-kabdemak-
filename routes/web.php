@@ -26,6 +26,9 @@ Route::prefix('lacak')->group(function () {
     Route::get('/{ticket}', [TrackController::class, 'show'])->name('public.track.show');
 });
 
+// Halaman publik: Lihat semua laporan (read-only)
+Route::get('/semua-laporan', [LandingController::class, 'allReports'])->name('public.reports.all');
+
 // =========================================
 // ADMIN ROUTES
 // =========================================

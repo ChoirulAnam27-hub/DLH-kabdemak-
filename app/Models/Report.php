@@ -24,6 +24,7 @@ class Report extends Model
         'is_anonymous',
         'category_id',
         'description',
+        'waste_type',
         'latitude',
         'longitude',
         'address',
