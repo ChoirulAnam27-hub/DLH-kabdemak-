@@ -96,7 +96,7 @@
                 <h6 class="text-dlh-primary fw-bold text-uppercase tracking-wide">Riwayat Laporan</h6>
                 <h2 class="fw-bold mb-0">Pengaduan Terbaru</h2>
             </div>
-            <a href="{{ route('public.reports.all') }}" class="btn btn-outline-secondary d-none d-md-block">Lihat Semua Laporan</a>
+            <a href="{{ route('public.reports.all') }}" class="btn btn-soft-success d-none d-md-block">Lihat Semua Laporan</a>
         </div>
 
         <div class="row gy-4">
@@ -161,7 +161,7 @@
             @endforeach
         </div>
         <div class="text-center mt-4 d-md-none">
-            <a href="{{ route('public.reports.all') }}" class="btn btn-outline-secondary">Lihat Semua Laporan</a>
+            <a href="{{ route('public.reports.all') }}" class="btn btn-soft-success">Lihat Semua Laporan</a>
         </div>
     </div>
 </section>

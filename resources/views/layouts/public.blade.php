@@ -42,6 +42,19 @@
             background-color: var(--dlh-dark);
             color: white;
         }
+        .btn-soft-success {
+            background-color: #d1e7dd;
+            color: #0f5132;
+            border: 1px solid #badbcc;
+            font-weight: 600;
+            transition: all 0.2s ease-in-out;
+        }
+        .btn-soft-success:hover, .btn-soft-success:active, .btn-soft-success:focus {
+            background-color: var(--dlh-primary);
+            color: white;
+            border-color: var(--dlh-primary);
+            box-shadow: 0 4px 10px rgba(25, 135, 84, 0.25);
+        }
         main {
             flex: 1;
         }
@@ -114,7 +127,7 @@
                     </li>
                     @else
                     <li class="nav-item ms-lg-3 mt-2 mt-lg-0">
-                        <a class="btn btn-outline-secondary btn-sm" href="{{ route('login') }}">Login Petugas</a>
+                        <a class="btn btn-soft-success btn-sm px-3" href="{{ route('login') }}">Login Petugas</a>
                     </li>
                     @endauth
                 </ul>

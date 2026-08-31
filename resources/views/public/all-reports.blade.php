@@ -26,42 +26,42 @@
     <div class="container">
         <div class="row g-3">
             <div class="col-6 col-md-3 col-lg">
-                <div class="text-center px-3 py-2 rounded-3 {{ !request('status') ? 'bg-dlh-primary text-white shadow-sm' : 'bg-light' }}">
-                    <a href="{{ route('public.reports.all', array_merge(request()->except('status', 'page'))) }}" class="text-decoration-none {{ !request('status') ? 'text-white' : 'text-dark' }}">
+                <div class="text-center px-3 py-2 rounded-3 border {{ !request('status') ? 'bg-dlh-primary text-white shadow-sm border-success' : 'bg-success-subtle border-success-subtle' }}">
+                    <a href="{{ route('public.reports.all', array_merge(request()->except('status', 'page'))) }}" class="text-decoration-none {{ !request('status') ? 'text-white' : 'text-success' }}">
                         <div class="fs-3 fw-bold">{{ $stats['total'] }}</div>
-                        <div class="small {{ !request('status') ? 'opacity-75' : 'text-muted' }}">Total Laporan</div>
+                        <div class="small {{ !request('status') ? 'opacity-75' : 'text-success opacity-75' }}">Total Laporan</div>
                     </a>
                 </div>
             </div>
             <div class="col-6 col-md-3 col-lg">
-                <div class="text-center px-3 py-2 rounded-3 {{ request('status') === 'pending' ? 'bg-warning text-dark shadow-sm' : 'bg-light' }}">
-                    <a href="{{ route('public.reports.all', array_merge(request()->except('page'), ['status' => 'pending'])) }}" class="text-decoration-none {{ request('status') === 'pending' ? 'text-dark' : 'text-dark' }}">
+                <div class="text-center px-3 py-2 rounded-3 border {{ request('status') === 'pending' ? 'bg-warning text-dark shadow-sm border-warning' : 'bg-warning-subtle border-warning-subtle' }}">
+                    <a href="{{ route('public.reports.all', array_merge(request()->except('page'), ['status' => 'pending'])) }}" class="text-decoration-none {{ request('status') === 'pending' ? 'text-dark' : 'text-warning-emphasis' }}">
                         <div class="fs-3 fw-bold">{{ $stats['pending'] }}</div>
-                        <div class="small text-muted">Menunggu</div>
+                        <div class="small {{ request('status') === 'pending' ? 'opacity-75' : 'text-warning-emphasis opacity-75' }}">Menunggu</div>
                     </a>
                 </div>
             </div>
             <div class="col-6 col-md-3 col-lg">
-                <div class="text-center px-3 py-2 rounded-3 {{ request('status') === 'diproses' ? 'bg-info text-white shadow-sm' : 'bg-light' }}">
-                    <a href="{{ route('public.reports.all', array_merge(request()->except('page'), ['status' => 'diproses'])) }}" class="text-decoration-none {{ request('status') === 'diproses' ? 'text-white' : 'text-dark' }}">
+                <div class="text-center px-3 py-2 rounded-3 border {{ request('status') === 'diproses' ? 'bg-info text-white shadow-sm border-info' : 'bg-info-subtle border-info-subtle' }}">
+                    <a href="{{ route('public.reports.all', array_merge(request()->except('page'), ['status' => 'diproses'])) }}" class="text-decoration-none {{ request('status') === 'diproses' ? 'text-white' : 'text-info-emphasis' }}">
                         <div class="fs-3 fw-bold">{{ $stats['diproses'] }}</div>
-                        <div class="small {{ request('status') === 'diproses' ? 'opacity-75' : 'text-muted' }}">Diproses</div>
+                        <div class="small {{ request('status') === 'diproses' ? 'opacity-75' : 'text-info-emphasis opacity-75' }}">Diproses</div>
                     </a>
                 </div>
             </div>
             <div class="col-6 col-md-3 col-lg">
-                <div class="text-center px-3 py-2 rounded-3 {{ request('status') === 'selesai' ? 'bg-success text-white shadow-sm' : 'bg-light' }}">
-                    <a href="{{ route('public.reports.all', array_merge(request()->except('page'), ['status' => 'selesai'])) }}" class="text-decoration-none {{ request('status') === 'selesai' ? 'text-white' : 'text-dark' }}">
+                <div class="text-center px-3 py-2 rounded-3 border {{ request('status') === 'selesai' ? 'bg-success text-white shadow-sm border-success' : 'bg-success-subtle border-success-subtle' }}">
+                    <a href="{{ route('public.reports.all', array_merge(request()->except('page'), ['status' => 'selesai'])) }}" class="text-decoration-none {{ request('status') === 'selesai' ? 'text-white' : 'text-success' }}">
                         <div class="fs-3 fw-bold">{{ $stats['selesai'] }}</div>
-                        <div class="small {{ request('status') === 'selesai' ? 'opacity-75' : 'text-muted' }}">Selesai</div>
+                        <div class="small {{ request('status') === 'selesai' ? 'opacity-75' : 'text-success opacity-75' }}">Selesai</div>
                     </a>
                 </div>
             </div>
             <div class="col-6 col-md-3 col-lg">
-                <div class="text-center px-3 py-2 rounded-3 {{ request('status') === 'ditolak' ? 'bg-danger text-white shadow-sm' : 'bg-light' }}">
-                    <a href="{{ route('public.reports.all', array_merge(request()->except('page'), ['status' => 'ditolak'])) }}" class="text-decoration-none {{ request('status') === 'ditolak' ? 'text-white' : 'text-dark' }}">
+                <div class="text-center px-3 py-2 rounded-3 border {{ request('status') === 'ditolak' ? 'bg-danger text-white shadow-sm border-danger' : 'bg-danger-subtle border-danger-subtle' }}">
+                    <a href="{{ route('public.reports.all', array_merge(request()->except('page'), ['status' => 'ditolak'])) }}" class="text-decoration-none {{ request('status') === 'ditolak' ? 'text-white' : 'text-danger' }}">
                         <div class="fs-3 fw-bold">{{ $stats['ditolak'] }}</div>
-                        <div class="small {{ request('status') === 'ditolak' ? 'opacity-75' : 'text-muted' }}">Ditolak</div>
+                        <div class="small {{ request('status') === 'ditolak' ? 'opacity-75' : 'text-danger opacity-75' }}">Ditolak</div>
                     </a>
                 </div>
             </div>
