@@ -85,7 +85,7 @@
                                     <label class="form-label fw-semibold">Alamat Email</label>
                                     <div class="input-group">
                                         <span class="input-group-text bg-white"><i class="bi bi-envelope"></i></span>
-                                        <input type="email" name="email" class="form-control border-start-0 ps-0" value="{{ old('email') }}" required autofocus placeholder="admin@dlh-demak.go.id">
+                                        <input type="email" name="email" class="form-control border-start-0 ps-0" value="{{ old('email') }}" required autofocus placeholder="admin@dinlh.demakkab.go.id">
                                     </div>
                                 </div>
                                 

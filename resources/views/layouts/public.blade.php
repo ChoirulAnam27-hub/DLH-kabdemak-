@@ -140,10 +140,10 @@
                     </a>
                     <p class="text-light opacity-75 mb-4 lh-lg">Sistem Pengaduan Penumpukan Sampah & Pencemaran Lingkungan Kabupaten Demak. Bersama kita jaga lingkungan agar tetap bersih, asri, dan sehat untuk generasi mendatang.</p>
                     <div class="d-flex gap-3">
-                        <a href="#" class="text-light opacity-50 hover-lift text-decoration-none"><i class="bi bi-facebook fs-5"></i></a>
-                        <a href="#" class="text-light opacity-50 hover-lift text-decoration-none"><i class="bi bi-instagram fs-5"></i></a>
-                        <a href="#" class="text-light opacity-50 hover-lift text-decoration-none"><i class="bi bi-twitter-x fs-5"></i></a>
-                        <a href="#" class="text-light opacity-50 hover-lift text-decoration-none"><i class="bi bi-youtube fs-5"></i></a>
+                        <a href="https://www.facebook.com/share/1DJNJ52aBq/" target="_blank" rel="noopener noreferrer" class="text-light opacity-50 hover-lift text-decoration-none"><i class="bi bi-facebook fs-5"></i></a>
+                        <a href="https://www.instagram.com/dinlhdemak/" target="_blank" rel="noopener noreferrer" class="text-light opacity-50 hover-lift text-decoration-none"><i class="bi bi-instagram fs-5"></i></a>
+                        <a href="https://www.tiktok.com/@dlh.demak?_t=ZS-8vg3LJWBDJy&_r=1" target="_blank" rel="noopener noreferrer" class="text-light opacity-50 hover-lift text-decoration-none"><i class="bi bi-tiktok fs-5"></i></a>
+                        <a href="https://www.youtube.com/@DLHDEMAK" target="_blank" rel="noopener noreferrer" class="text-light opacity-50 hover-lift text-decoration-none"><i class="bi bi-youtube fs-5"></i></a>
                     </div>
                 </div>
                 <div class="col-lg-3 offset-lg-1">
@@ -163,11 +163,11 @@
                         </li>
                         <li class="d-flex align-items-center">
                             <i class="bi bi-telephone-fill text-dlh-primary me-3"></i>
-                            <span>(0291) 123456</span>
+                            <span>(0291) 685677</span>
                         </li>
                         <li class="d-flex align-items-center">
                             <i class="bi bi-envelope-fill text-dlh-primary me-3"></i>
-                            <span>info@dlh-demak.go.id</span>
+                            <span>dinlh.demakkab.go.id</span>
                         </li>
                     </ul>
                 </div>
