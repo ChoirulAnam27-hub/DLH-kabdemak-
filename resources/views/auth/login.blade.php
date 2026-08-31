@@ -79,13 +79,13 @@
                             </div>
                             @endif
 
-                            <form action="{{ route('login.post') }}" method="POST">
+                            <form action="{{ route('login.post') }}" method="POST" autocomplete="off">
                                 @csrf
                                 <div class="mb-3">
                                     <label class="form-label fw-semibold">Alamat Email</label>
                                     <div class="input-group">
                                         <span class="input-group-text bg-white"><i class="bi bi-envelope"></i></span>
-                                        <input type="email" name="email" class="form-control border-start-0 ps-0" value="{{ old('email') }}" required autofocus placeholder="admin@dinlh.demakkab.go.id">
+                                        <input type="email" id="emailInput" name="email" class="form-control border-start-0 ps-0" value="" required autofocus placeholder="" autocomplete="off">
                                     </div>
                                 </div>
                                 
@@ -93,7 +93,10 @@
                                     <label class="form-label fw-semibold">Password</label>
                                     <div class="input-group">
                                         <span class="input-group-text bg-white"><i class="bi bi-lock"></i></span>
-                                        <input type="password" name="password" class="form-control border-start-0 ps-0" required placeholder="••••••••">
+                                        <input type="password" id="passwordInput" name="password" class="form-control border-start-0 border-end-0 ps-0" required placeholder="" autocomplete="new-password">
+                                        <button type="button" class="input-group-text bg-white border-start-0 text-muted" id="togglePasswordBtn" style="cursor: pointer;" title="Tampilkan/Sembunyikan Password">
+                                            <i class="bi bi-eye-slash" id="toggleIcon"></i>
+                                        </button>
                                     </div>
                                 </div>
 
@@ -117,5 +120,35 @@
         </div>
     </div>
 
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const toggleBtn = document.getElementById('togglePasswordBtn');
+            const passwordInput = document.getElementById('passwordInput');
+            const emailInput = document.getElementById('emailInput');
+            const toggleIcon = document.getElementById('toggleIcon');
+
+            // Force clear autofilled values from browser password manager
+            setTimeout(function() {
+                if (emailInput && !emailInput.getAttribute('data-user-typed')) emailInput.value = '';
+                if (passwordInput && !passwordInput.getAttribute('data-user-typed')) passwordInput.value = '';
+            }, 150);
+
+            if (emailInput) {
+                emailInput.addEventListener('input', function() { emailInput.setAttribute('data-user-typed', 'true'); });
+            }
+            if (passwordInput) {
+                passwordInput.addEventListener('input', function() { passwordInput.setAttribute('data-user-typed', 'true'); });
+            }
+
+            if (toggleBtn && passwordInput && toggleIcon) {
+                toggleBtn.addEventListener('click', function () {
+                    const isPassword = passwordInput.getAttribute('type') === 'password';
+                    passwordInput.setAttribute('type', isPassword ? 'text' : 'password');
+                    toggleIcon.classList.toggle('bi-eye-slash', !isPassword);
+                    toggleIcon.classList.toggle('bi-eye', isPassword);
+                });
+            }
+        });
+    </script>
 </body>
 </html>
