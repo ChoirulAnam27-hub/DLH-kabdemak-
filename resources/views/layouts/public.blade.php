@@ -170,7 +170,7 @@
                     <ul class="list-unstyled text-light opacity-75 d-flex flex-column gap-3 mb-0">
                         <li class="d-flex align-items-start">
                             <i class="bi bi-geo-alt-fill text-dlh-primary me-3 mt-1"></i>
-                            <span class="lh-base">Jl. Sultan Fatah No. 34,<br>Kabupaten Demak, Jawa Tengah</span>
+                            <span class="lh-base">Jl. Bhayangkara Baru 1 59511,<br>Demak, Jawa Tengah</span>
                         </li>
                         <li class="d-flex align-items-center">
                             <i class="bi bi-telephone-fill text-dlh-primary me-3"></i>

@@ -22,7 +22,7 @@
 <body>
     <div class="header">
         <h1>DINAS LINGKUNGAN HIDUP KABUPATEN DEMAK</h1>
-        <p>Jl. Sultan Fatah No. 12, Kabupaten Demak, Jawa Tengah 59511</p>
+        <p>Jl. Bhayangkara Baru 1 59511, Demak, Jawa Tengah</p>
         <p>Telp: (0291) 685677 | Email: dinlh.demakkab.go.id</p>
     </div>
 
