@@ -176,7 +176,7 @@
         <nav id="sidebar">
             <div class="sidebar-header d-flex align-items-center justify-content-between">
                 <a href="{{ route('admin.dashboard') }}" class="d-flex align-items-center text-white text-decoration-none">
-                    <i class="bi bi-tree-fill text-success fs-3 me-2"></i>
+                    <img src="{{ asset('assets/images/logo-dlh.png') }}" alt="Logo DLH Demak" class="me-2" style="width: 36px; height: 36px; object-fit: contain;">
                     <h5 class="mb-0 fw-bold">DLH Demak</h5>
                 </a>
                 <button type="button" class="btn text-white-50 d-lg-none p-0 border-0" id="closeSidebarBtn">

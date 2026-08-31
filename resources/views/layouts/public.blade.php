@@ -101,7 +101,7 @@
     <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top">
         <div class="container">
             <a class="navbar-brand d-flex align-items-center" href="{{ route('public.landing') }}">
-                <i class="bi bi-tree-fill me-2 fs-3 text-dlh-primary"></i>
+                <img src="{{ asset('assets/images/logo-dlh.png') }}" alt="Logo DLH Demak" class="me-2" style="width: 40px; height: 40px; object-fit: contain;">
                 <div>
                     <div class="lh-1 fs-5">DLH Kabupaten Demak</div>
                     <div class="lh-1 fs-6 text-muted fw-normal mt-1" style="font-size: 0.8rem !important;">Sistem Pengaduan Lingkungan</div>
@@ -146,9 +146,7 @@
             <div class="row gy-5">
                 <div class="col-lg-5 pe-lg-5">
                     <a href="{{ route('public.landing') }}" class="text-decoration-none d-inline-flex align-items-center mb-4">
-                        <div class="bg-dlh-primary text-white rounded p-2 me-3 shadow-sm">
-                            <i class="bi bi-tree-fill fs-4"></i>
-                        </div>
+                        <img src="{{ asset('assets/images/logo-dlh.png') }}" alt="Logo DLH Demak" class="me-3" style="width: 45px; height: 45px; object-fit: contain;">
                         <h4 class="text-white mb-0 fw-bold">DLH Demak</h4>
                     </a>
                     <p class="text-light opacity-75 mb-4 lh-lg">Sistem Pengaduan Penumpukan Sampah & Pencemaran Lingkungan Kabupaten Demak. Bersama kita jaga lingkungan agar tetap bersih, asri, dan sehat untuk generasi mendatang.</p>

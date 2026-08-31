@@ -55,7 +55,7 @@
                 <div class="card login-card">
                     <div class="row g-0">
                         <div class="col-md-5 d-none d-md-flex login-side">
-                            <h2 class="fw-bold mb-4"><i class="bi bi-tree-fill me-2"></i>DLH Demak</h2>
+                            <h2 class="fw-bold mb-4 d-flex align-items-center"><img src="{{ asset('assets/images/logo-dlh.png') }}" alt="Logo DLH Demak" class="me-2" style="width: 45px; height: 45px; object-fit: contain;">DLH Demak</h2>
                             <p class="lead mb-4">Sistem Pengaduan Penumpukan Sampah & Pencemaran Lingkungan.</p>
                             <div class="mt-auto">
                                 <a href="{{ route('public.landing') }}" class="btn btn-outline-light rounded-pill"><i class="bi bi-arrow-left me-2"></i>Ke Portal Publik</a>
@@ -63,9 +63,9 @@
                         </div>
                         <div class="col-md-7 login-form-side">
                             <div class="text-center mb-4 d-md-none">
-                                <h3 class="fw-bold text-success"><i class="bi bi-tree-fill me-2"></i>DLH Demak</h3>
+                                <h3 class="fw-bold text-success d-flex align-items-center justify-content-center"><img src="{{ asset('assets/images/logo-dlh.png') }}" alt="Logo DLH Demak" class="me-2" style="width: 40px; height: 40px; object-fit: contain;">DLH Demak</h3>
                             </div>
-                            
+
                             <h4 class="fw-bold mb-1">Selamat Datang Kembali</h4>
                             <p class="text-muted mb-4">Silakan login menggunakan akun staf Anda.</p>
 
@@ -88,7 +88,7 @@
                                         <input type="email" id="emailInput" name="email" class="form-control border-start-0 ps-0" value="" required autofocus placeholder="" autocomplete="off">
                                     </div>
                                 </div>
-                                
+
                                 <div class="mb-4">
                                     <label class="form-label fw-semibold">Password</label>
                                     <div class="input-group">
@@ -108,7 +108,7 @@
                                 </div>
 
                                 <button type="submit" class="btn btn-login w-100 mb-3">Login ke Dashboard</button>
-                                
+
                                 <div class="text-center d-md-none mt-4">
                                     <a href="{{ route('public.landing') }}" class="text-decoration-none text-muted"><i class="bi bi-arrow-left me-1"></i>Ke Portal Publik</a>
                                 </div>
