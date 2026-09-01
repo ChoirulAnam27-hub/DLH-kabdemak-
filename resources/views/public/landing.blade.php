@@ -50,8 +50,12 @@
         </div>
     </div>
     <!-- Decorative background elements -->
-    <div class="position-absolute rounded-circle bg-white opacity-10" style="width: 300px; height: 300px; top: -100px; right: -50px;"></div>
-    <div class="position-absolute rounded-circle bg-white opacity-10" style="width: 150px; height: 150px; bottom: 50px; right: 200px;"></div>
+    <div class="position-absolute rounded-circle overflow-hidden shadow-lg" style="width: 340px; height: 340px; top: -70px; right: -50px; z-index: 0; border: 4px solid rgba(255, 255, 255, 0.3); pointer-events: none;">
+        <img src="{{ asset('assets/images/bg-circle-1.jpg') }}" alt="Mangrove Background 1" class="w-100 h-100 object-fit-cover opacity-75">
+    </div>
+    <div class="position-absolute rounded-circle overflow-hidden shadow-lg" style="width: 230px; height: 230px; bottom: -30px; right: 180px; z-index: 0; border: 4px solid rgba(255, 255, 255, 0.3); pointer-events: none;">
+        <img src="{{ asset('assets/images/bg-circle-2.jpg') }}" alt="Mangrove Background 2" class="w-100 h-100 object-fit-cover opacity-75">
+    </div>
 </section>
 
 <!-- How it works -->
